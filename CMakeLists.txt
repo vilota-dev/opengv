@@ -53,9 +53,10 @@ IF(BUILD_POSITION_INDEPENDENT_CODE)
   add_definitions( -fPIC )
 ENDIF()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/modules/")
-find_package(Eigen REQUIRED)
-set(ADDITIONAL_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR}/unsupported)
+# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/modules/")
+# find_package(Eigen3 REQUIRED)
+# set(ADDITIONAL_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR}/unsupported)
+message("OpenGV: Using Eigen at location: ${EIGEN3_INCLUDE_DIR}")
 
 set( OPENGV_SOURCE_FILES
   src/absolute_pose/modules/main.cpp
@@ -188,17 +189,16 @@ set_target_properties( opengv random_generators PROPERTIES
 target_include_directories( opengv PUBLIC 
                 # only when building from the source tree
                 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
+                $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}/unsupported>
                 # only when using the lib from the install path
-                $<INSTALL_INTERFACE:include>
-                ${ADDITIONAL_INCLUDE_DIRS} )
+                $<INSTALL_INTERFACE:include>)
 
-target_include_directories( random_generators PRIVATE ${ADDITIONAL_INCLUDE_DIRS} )
 
 target_link_libraries( random_generators opengv )
 
 IF (BUILD_TESTS)
   enable_testing()
-  include_directories( ${ADDITIONAL_INCLUDE_DIRS} )
 
   add_executable( test_absolute_pose test/test_absolute_pose.cpp )
   target_link_libraries( test_absolute_pose opengv random_generators )
