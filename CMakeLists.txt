@@ -1,28 +1,16 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(opengv VERSION 1.0 LANGUAGES CXX)
 
-# Set the build type.  Options are:
-#
-#  None (CMAKE_C_FLAGS or CMAKE_CXX_FLAGS used)
-#  Debug (CMAKE_C_FLAGS_DEBUG or CMAKE_CXX_FLAGS_DEBUG)
-#  Release (CMAKE_C_FLAGS_RELEASE or CMAKE_CXX_FLAGS_RELEASE)
-#  RelWithDebInfo (CMAKE_C_FLAGS_RELWITHDEBINFO or CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-#  MinSizeRel (CMAKE_C_FLAGS_MINSIZEREL or CMAKE_CXX_FLAGS_MINSIZEREL)
-
-set(CMAKE_BUILD_TYPE Release)
-
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-OPTION(BUILD_TESTS "Build tests" ON)
+OPTION(BUILD_TESTS "Build tests" OFF)
 OPTION(BUILD_PYTHON "Build Python extension" OFF)
 
 IF(MSVC)
-  set(BUILD_SHARED_LIBS OFF)
 ELSE()
-  OPTION(BUILD_SHARED_LIBS "Build shared libraries" OFF)
   OPTION(BUILD_POSITION_INDEPENDENT_CODE "Build position independent code (-fPIC)" ON)
 ENDIF()
 
@@ -36,7 +24,7 @@ ELSE()
           "(arm)|(ARM)|(armhf)|(ARMHF)|(armel)|(ARMEL)")
     add_definitions (-march=armv7-a)
   ELSE ()
-    add_definitions (-march=native) #TODO use correct c++11 def once everybody has moved to gcc 4.7 # for now I even removed std=gnu++0x
+    # add_definitions (-march=native) #TODO use correct c++11 def once everybody has moved to gcc 4.7 # for now I even removed std=gnu++0x
   ENDIF()
   add_definitions (
     -O3
@@ -53,9 +41,11 @@ IF(BUILD_POSITION_INDEPENDENT_CODE)
   add_definitions( -fPIC )
 ENDIF()
 
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/modules/")
-# find_package(Eigen3 REQUIRED)
-# set(ADDITIONAL_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR}/unsupported)
+IF(NOT DEFINED Eigen3_DIR)
+  message(FATAL_ERROR "please inject Eigen3_DIR for opengv")
+ENDIF()
+
+find_package(Eigen3 3.4.0 EXACT CONFIG REQUIRED)
 message("OpenGV: Using Eigen at location: ${EIGEN3_INCLUDE_DIR}")
 
 set( OPENGV_SOURCE_FILES
@@ -182,9 +172,14 @@ add_library( random_generators test/random_generators.cpp test/random_generators
 set_target_properties( opengv random_generators PROPERTIES
                     SOVERSION ${PROJECT_VERSION}
                     VERSION ${PROJECT_VERSION}
-                    CXX_STANDARD 11
+                    CXX_STANDARD 17
                     CXX_STANDARD_REQUIRED ON
-                    DEBUG_POSTFIX d )
+                    DEBUG_POSTFIX "" )
+
+target_compile_options(opengv PRIVATE
+  -Wno-unused-private-field
+  ${${CMAKE_PROJECT_NAME}_MARCH_FLAGS}
+)
 
 target_include_directories( opengv PUBLIC 
                 # only when building from the source tree
