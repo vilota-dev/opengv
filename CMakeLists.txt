@@ -10,11 +10,6 @@ OPTION(BUILD_TESTS "Build tests" OFF)
 OPTION(BUILD_PYTHON "Build Python extension" OFF)
 
 IF(MSVC)
-ELSE()
-  OPTION(BUILD_POSITION_INDEPENDENT_CODE "Build position independent code (-fPIC)" ON)
-ENDIF()
-
-IF(MSVC)
   add_compile_options(/wd4514 /wd4267 /bigobj)
   add_definitions(-D_USE_MATH_DEFINES)
 ELSE()
@@ -27,18 +22,10 @@ ELSE()
     # add_definitions (-march=native) #TODO use correct c++11 def once everybody has moved to gcc 4.7 # for now I even removed std=gnu++0x
   ENDIF()
   add_definitions (
-    -O3
-    -Wall
-    -Wextra
-    #-Werror
     -Wwrite-strings
     -Wno-unused-parameter
     -fno-strict-aliasing
   )
-ENDIF()
-
-IF(BUILD_POSITION_INDEPENDENT_CODE)
-  add_definitions( -fPIC )
 ENDIF()
 
 IF(NOT DEFINED Eigen3_DIR)
@@ -172,8 +159,6 @@ add_library( random_generators test/random_generators.cpp test/random_generators
 set_target_properties( opengv random_generators PROPERTIES
                     SOVERSION ${PROJECT_VERSION}
                     VERSION ${PROJECT_VERSION}
-                    CXX_STANDARD 17
-                    CXX_STANDARD_REQUIRED ON
                     DEBUG_POSTFIX "" )
 
 target_compile_options(opengv PRIVATE
